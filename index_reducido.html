@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html data-lang="es" lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Aceguá · Propiedad Estratégica</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Jost:wght@300;400;500;600&family=Cormorant:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#1C1A17;--ink-s:#252320;--ink-c:#2E2B27;--ink-m:#38342F;
+  --beige:#EDE8DF;--beige-s:#E4DDD2;--beige-d:#D6CEC2;--beige-dim:rgba(237,232,223,.08);
+  --cream:#F7F4EF;--cream-s:#FAF8F5;
+  --gold:#C9A96E;--gold-b:#DFC08A;--gold-p:#EDD4A3;--gold-d:#A07B45;
+  --gold-dim:rgba(201,169,110,.12);--gold-line:rgba(201,169,110,.25);
+  --text:#EDE8DF;--text-m:rgba(237,232,223,.65);--text-s:rgba(237,232,223,.38);--text-xs:rgba(237,232,223,.22);
+  --green:#4A9E6F;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Jost',sans-serif;background:var(--ink);color:var(--text);line-height:1.75;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+[data-lang="es"] [data-pt],[data-lang="pt"] [data-es]{display:none!important}
+.lang-switch{display:flex;gap:2px;background:rgba(237,232,223,.06);border:1px solid var(--gold-line);padding:3px;}
+.lang-btn{font-family:'Jost',sans-serif;font-size:10px;font-weight:600;letter-spacing:2px;color:var(--text-s);background:transparent;border:none;cursor:pointer;padding:5px 13px;transition:all .3s;text-transform:uppercase;}
+.lang-btn.active{background:linear-gradient(135deg,var(--gold-d),var(--gold),var(--gold-b));color:var(--ink);font-weight:700;}
+.lang-btn:hover:not(.active){color:var(--gold-b)}
+.nav{position:fixed;top:0;left:0;right:0;z-index:300;padding:28px 60px;display:flex;justify-content:space-between;align-items:center;transition:all .6s cubic-bezier(.16,1,.3,1);}
+.nav.scrolled{background:rgba(28,26,23,.96);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);padding:18px 60px;border-bottom:1px solid var(--gold-line);box-shadow:0 8px 48px rgba(0,0,0,.4);}
+.nav-logo{display:flex;flex-direction:column;gap:1px;}
+.nav-logo-main{font-family:'Playfair Display',serif;font-size:20px;font-weight:400;letter-spacing:8px;text-transform:uppercase;color:var(--text);}
+.nav-logo-sub{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--gold);font-weight:500;}
+.nav-right{display:flex;align-items:center;gap:48px}
+.nav-links{display:flex;gap:36px}
+.nav-links a{color:var(--text-s);text-decoration:none;font-size:10px;font-weight:500;letter-spacing:3px;text-transform:uppercase;transition:color .3s;position:relative;}
+.nav-links a::after{content:'';position:absolute;bottom:-3px;left:0;width:0;height:1px;background:var(--gold);transition:width .3s;}
+.nav-links a:hover{color:var(--gold-b)}
+.nav-links a:hover::after{width:100%}
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--ink);overflow:hidden;}
+.hero::after{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");opacity:.4;pointer-events:none;z-index:1;}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(201,169,110,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(201,169,110,.04) 1px,transparent 1px);background-size:80px 80px;}
+.hero-glow{position:absolute;inset:0;background:radial-gradient(ellipse 60% 55% at 50% 60%,rgba(201,169,110,.06) 0%,transparent 70%),radial-gradient(ellipse 40% 40% at 15% 85%,rgba(201,169,110,.04) 0%,transparent 55%);}
+.hero-rule{position:absolute;top:0;bottom:0;width:1px;background:linear-gradient(180deg,transparent 5%,var(--gold-line) 25%,var(--gold-line) 75%,transparent 95%);}
+.hero-rule-l{left:60px}.hero-rule-r{right:60px}
+.hero-hrule{position:absolute;top:88px;left:60px;right:60px;height:1px;background:linear-gradient(90deg,transparent,var(--gold-line) 15%,var(--gold-line) 85%,transparent);}
+.hero-content{position:relative;z-index:2;text-align:center;padding:140px 24px 100px;max-width:860px;}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:14px;margin-bottom:44px;animation:riseUp 1.4s cubic-bezier(.16,1,.3,1) .1s both;}
+.hero-eyebrow-line{width:40px;height:1px;background:var(--gold);opacity:.6;}
+.hero-eyebrow-text{font-size:9px;font-weight:600;letter-spacing:5px;text-transform:uppercase;color:var(--gold);}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(48px,7vw,92px);font-weight:400;color:var(--text);line-height:1.0;letter-spacing:-1px;margin-bottom:8px;animation:riseUp 1.4s cubic-bezier(.16,1,.3,1) .25s both;}
+.hero h1 em{font-style:italic;color:var(--gold-p);}
+.hero h1 .block{display:block;font-weight:300;}
+.hero-rule-h{width:1px;height:60px;background:linear-gradient(180deg,var(--gold),transparent);margin:36px auto;animation:riseUp 1.4s cubic-bezier(.16,1,.3,1) .4s both;}
+.hero-sub{font-family:'Cormorant',serif;font-size:19px;font-style:italic;color:var(--text-m);max-width:500px;margin:0 auto 56px;line-height:1.7;letter-spacing:.3px;font-weight:300;animation:riseUp 1.4s cubic-bezier(.16,1,.3,1) .5s both;}
+.hero-sub strong{font-family:'Jost',sans-serif;font-style:normal;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold-b);}
+.hero-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;animation:riseUp 1.4s cubic-bezier(.16,1,.3,1) .65s both;}
+.btn-primary{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--gold-d),var(--gold),var(--gold-b));color:var(--ink);padding:14px 40px;text-decoration:none;font-weight:600;font-size:9px;letter-spacing:3px;text-transform:uppercase;transition:all .4s;position:relative;overflow:hidden;}
+.btn-primary::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--gold-b),var(--gold-p));opacity:0;transition:opacity .4s;}
+.btn-primary:hover::after{opacity:1}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(201,169,110,.3)}
+.btn-primary span,.btn-primary svg{position:relative;z-index:1}
+.btn-ghost{display:inline-flex;align-items:center;gap:10px;border:1px solid var(--gold-line);color:var(--beige-s);padding:14px 40px;text-decoration:none;font-weight:500;font-size:9px;letter-spacing:3px;text-transform:uppercase;transition:all .4s;background:transparent;}
+.btn-ghost:hover{background:var(--beige-dim);border-color:var(--gold);color:var(--gold-p);transform:translateY(-2px)}
+.scroll-cue{position:absolute;bottom:48px;left:50%;transform:translateX(-50%);z-index:2;display:flex;flex-direction:column;align-items:center;gap:10px;animation:riseUp 1.4s cubic-bezier(.16,1,.3,1) 1s both;}
+.scroll-cue span{font-size:8px;letter-spacing:4px;text-transform:uppercase;color:var(--text-xs);font-weight:600;}
+.scroll-wire{width:1px;height:44px;overflow:hidden;position:relative;}
+.scroll-wire::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,var(--gold-dim) 0%,transparent 100%);}
+.scroll-wire::after{content:'';position:absolute;top:-12px;left:0;width:1px;height:12px;background:linear-gradient(180deg,transparent,var(--gold));animation:drip 2.2s ease-in-out infinite;}
+@keyframes drip{0%{top:-12px;opacity:0}20%{opacity:1}100%{top:56px;opacity:0}}
+.container{max-width:1140px;margin:0 auto;padding:0 40px}
+section{padding:140px 0}
+.label{font-size:9px;font-weight:600;letter-spacing:5px;text-transform:uppercase;color:var(--gold);display:flex;align-items:center;gap:14px;margin-bottom:12px;}
+.label::before{content:'';display:block;width:28px;height:1px;background:var(--gold);opacity:.5;}
+.h2{font-family:'Playfair Display',serif;font-size:clamp(32px,4.5vw,54px);font-weight:400;line-height:1.1;letter-spacing:-.5px;color:var(--text);margin-bottom:22px;}
+.h2 em{font-style:italic;color:var(--gold-p)}
+.body-text{font-size:14.5px;color:var(--text-m);line-height:2;letter-spacing:.2px;}
+.body-text strong{color:var(--beige);font-weight:600;}
+.property-sec{background:var(--ink-s);}
+.property-grid{display:grid;grid-template-columns:1fr 1fr;gap:90px;align-items:center;}
+.stats-row{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin-top:52px;background:var(--gold-line);border:1px solid var(--gold-line);}
+.stat-block{background:var(--ink-s);padding:30px 28px;}
+.stat-block .num{font-family:'Playfair Display',serif;font-size:36px;font-weight:400;color:var(--gold-b);letter-spacing:-1px;margin-bottom:5px;}
+.stat-block .lbl{font-size:9px;color:var(--text-s);font-weight:600;letter-spacing:3px;text-transform:uppercase;}
+.prop-panel{position:relative;background:var(--ink-c);border:1px solid var(--gold-line);aspect-ratio:4/5;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.prop-panel::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(201,169,110,.07),transparent 65%);}
+.prop-panel .cm{position:absolute;width:20px;height:20px;border-color:var(--gold);border-style:solid;opacity:.4;}
+.prop-panel .cm.tl{top:14px;left:14px;border-width:1px 0 0 1px}
+.prop-panel .cm.tr{top:14px;right:14px;border-width:1px 1px 0 0}
+.prop-panel .cm.bl{bottom:14px;left:14px;border-width:0 0 1px 1px}
+.prop-panel .cm.br{bottom:14px;right:14px;border-width:0 1px 1px 0}
+.prop-inner{position:relative;z-index:1;text-align:center;padding:40px;}
+.prop-icon{width:72px;height:72px;margin:0 auto 24px;border:1px solid var(--gold-line);display:flex;align-items:center;justify-content:center;background:rgba(201,169,110,.05);}
+.prop-icon svg{width:32px;height:32px;stroke:var(--gold-b);fill:none;stroke-width:1.2;}
+.prop-big{font-family:'Playfair Display',serif;font-size:52px;font-weight:400;color:var(--text);letter-spacing:2px;margin-bottom:10px;}
+.prop-sub{font-size:9px;color:var(--text-s);font-weight:600;letter-spacing:4px;text-transform:uppercase;}
+/* GALLERY */
+.gallery-sec{background:var(--ink-c);position:relative;overflow:hidden;border-top:1px solid var(--gold-line);border-bottom:1px solid var(--gold-line);}
+.gallery-disclaimer{margin-bottom:52px;border:1px solid var(--gold-line);background:rgba(201,169,110,.05);padding:20px 28px 20px 32px;display:flex;align-items:flex-start;gap:16px;position:relative;}
+.gallery-disclaimer::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--gold-d),var(--gold),var(--gold-b));}
+.gallery-disclaimer-icon{flex-shrink:0;width:32px;height:32px;border:1px solid var(--gold-line);display:flex;align-items:center;justify-content:center;margin-top:2px;}
+.gallery-disclaimer-icon svg{width:15px;height:15px;stroke:var(--gold-b);fill:none;stroke-width:1.5;}
+.gallery-disclaimer-title{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold-b);margin-bottom:6px;}
+.gallery-disclaimer-body{font-size:12.5px;color:var(--text-m);line-height:1.75;}
+.gallery-featured{position:relative;margin-bottom:3px;border:1px solid var(--gold-line);border-bottom:none;cursor:pointer;background:var(--ink-c);}
+.gallery-featured img{width:100%;height:520px;object-fit:contain;display:block;transition:transform .8s cubic-bezier(.16,1,.3,1);background:var(--ink-c);}
+.gallery-featured:hover img{transform:scale(1.02)}
+.gallery-featured-overlay{position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(28,26,23,.65) 100%);pointer-events:none;}
+.gallery-featured-badge{position:absolute;bottom:20px;right:20px;background:rgba(28,26,23,.88);border:1px solid var(--gold-line);backdrop-filter:blur(8px);padding:8px 18px;font-size:9px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--gold-b);}
+.gallery-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;border:1px solid var(--gold-line);border-top:none;}
+.gallery-thumb{position:relative;overflow:hidden;cursor:pointer;aspect-ratio:4/3;background:var(--ink-c);}
+.gallery-thumb img{width:100%;height:100%;object-fit:contain;display:block;transition:transform .6s cubic-bezier(.16,1,.3,1);background:var(--ink-c);}
+.gallery-thumb::after{content:'';position:absolute;inset:0;background:rgba(28,26,23,.3);transition:opacity .4s;}
+.gallery-thumb:hover img{transform:scale(1.08);}
+.gallery-thumb:hover::after{opacity:0}
+/* LIGHTBOX */
+.lightbox{position:fixed;inset:0;z-index:9999;background:rgba(28,26,23,.97);display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all .4s cubic-bezier(.16,1,.3,1);backdrop-filter:blur(20px);}
+.lightbox.open{opacity:1;visibility:visible;}
+.lightbox-inner{position:relative;max-width:1100px;width:90%;padding:0 60px;}
+.lightbox-img{width:100%;max-height:80vh;object-fit:contain;display:block;border:1px solid var(--gold-line);transition:opacity .2s;}
+.lightbox-close{position:absolute;top:-44px;right:60px;width:40px;height:40px;border:1px solid var(--gold-line);background:var(--ink-c);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .3s;color:var(--text-s);font-size:18px;line-height:1;}
+.lightbox-close:hover{background:var(--gold-dim);color:var(--gold-b);border-color:var(--gold);}
+.lightbox-nav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border:1px solid var(--gold-line);background:rgba(28,26,23,.9);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .3s;color:var(--gold);}
+.lightbox-nav:hover{background:var(--gold-dim);border-color:var(--gold);}
+.lightbox-prev{left:0}.lightbox-next{right:0;}
+.lightbox-nav svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;}
+.lightbox-caption{text-align:center;margin-top:16px;font-family:'Cormorant',serif;font-style:italic;font-size:14px;color:var(--text-s);}
+.lightbox-counter{text-align:center;margin-top:8px;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--text-xs);font-weight:600;}
+/* FEATURES */
+.feat-sec{background:var(--ink);}
+.feat-header{text-align:center;margin-bottom:72px;}
+.feat-header .label{justify-content:center}
+.feat-header .label::before{display:none}
+.feat-header .label::after{content:'';display:block;width:28px;height:1px;background:var(--gold);opacity:.5;}
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--gold-line);}
+.feat-card{padding:50px 40px;border-right:1px solid var(--gold-line);border-bottom:1px solid var(--gold-line);position:relative;overflow:hidden;transition:background .5s;}
+.feat-card:nth-child(3n){border-right:none}
+.feat-card:nth-child(n+4){border-bottom:none}
+.feat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);transform:scaleX(0);transform-origin:left;transition:transform .5s;}
+.feat-card:hover{background:var(--ink-c)}
+.feat-card:hover::after{transform:scaleX(1)}
+.feat-num{font-family:'Playfair Display',serif;font-size:13px;font-weight:400;color:var(--gold-line);letter-spacing:2px;margin-bottom:28px;display:block;}
+.feat-card h3{font-family:'Playfair Display',serif;font-size:20px;font-weight:400;color:var(--text);margin-bottom:12px;line-height:1.3;}
+.feat-card p{font-size:13px;color:var(--text-m);line-height:1.8;}
+.feat-card p strong{color:var(--beige-s);font-weight:600;}
+.feat-ico{width:40px;height:40px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;}
+.feat-ico svg{width:20px;height:20px;stroke:var(--gold);fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;}
+/* PRICING */
+.price-sec{background:var(--ink-s);}
+.price-card{max-width:760px;margin:0 auto;border:1px solid var(--gold-line);position:relative;overflow:hidden;}
+.price-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold-b),transparent);}
+.price-card::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 80% 10%,rgba(201,169,110,.05),transparent 55%);pointer-events:none;}
+.price-top{padding:72px 68px 44px;text-align:center;position:relative;z-index:1;}
+.price-eyebrow{font-size:9px;letter-spacing:5px;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:28px;display:flex;align-items:center;justify-content:center;gap:16px;}
+.price-eyebrow::before,.price-eyebrow::after{content:'';display:block;width:32px;height:1px;background:var(--gold-line);}
+.price-fig{font-family:'Playfair Display',serif;font-size:80px;font-weight:300;color:var(--text);letter-spacing:-3px;line-height:1;}
+.price-fig small{font-size:22px;font-weight:300;letter-spacing:0;color:var(--text-s);}
+.price-note{font-size:10px;color:var(--text-s);letter-spacing:3px;text-transform:uppercase;margin-top:12px;font-weight:500;}
+.price-sep{height:1px;background:linear-gradient(90deg,transparent,var(--gold-line),transparent);margin:0 68px;}
+.price-grid{padding:44px 68px 72px;display:grid;grid-template-columns:1fr 1fr;gap:16px;position:relative;z-index:1;}
+.price-item{text-align:center;padding:28px 22px;border:1px solid rgba(201,169,110,.08);transition:all .35s;position:relative;overflow:hidden;}
+.price-item::before{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);transform:scaleX(0);transition:transform .35s;}
+.price-item:hover{background:rgba(201,169,110,.05);border-color:var(--gold-line)}
+.price-item:hover::before{transform:scaleX(1)}
+.price-item .v{font-family:'Playfair Display',serif;font-size:26px;font-weight:400;color:var(--text);margin-bottom:7px;}
+.price-item .d{font-size:9px;color:var(--text-s);font-weight:600;letter-spacing:3px;text-transform:uppercase;}
+/* CALCULATOR */
+.calc-sec{background:var(--ink);}
+.calc-wrap{max-width:960px;margin:72px auto 0;display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--gold-line);position:relative;overflow:hidden;}
+.calc-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold-b),transparent);}
+.calc-in{padding:60px 52px;border-right:1px solid var(--gold-line);}
+.calc-out{padding:60px 52px;position:relative;overflow:hidden;}
+.calc-out::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 80% 20%,rgba(201,169,110,.06),transparent 60%);pointer-events:none;}
+.inp-grp{margin-bottom:40px}
+.inp-grp:last-child{margin-bottom:0}
+.inp-lbl{display:flex;justify-content:space-between;align-items:baseline;font-size:9px;font-weight:600;color:var(--text-s);letter-spacing:3px;text-transform:uppercase;margin-bottom:16px;}
+.inp-lbl .val{font-family:'Playfair Display',serif;font-size:26px;font-weight:400;color:var(--gold-b);letter-spacing:-.5px;}
+input[type="range"]{-webkit-appearance:none;appearance:none;width:100%;height:1px;outline:none;cursor:pointer;background:linear-gradient(to right,var(--gold) 0%,var(--gold) 50%,rgba(237,232,223,.1) 50%,rgba(237,232,223,.1) 100%);}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;background:var(--gold);border:2px solid var(--ink);cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 0 0 1px var(--gold-line);}
+input[type="range"]::-webkit-slider-thumb:hover{transform:scale(1.3);box-shadow:0 0 0 4px rgba(201,169,110,.2)}
+input[type="range"]::-moz-range-thumb{width:16px;height:16px;background:var(--gold);border:2px solid var(--ink);cursor:pointer;border-radius:0}
+.res-item{margin-bottom:36px;position:relative;z-index:1}
+.res-item:last-child{margin-bottom:0}
+.res-lbl{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--text-s);font-weight:600;margin-bottom:8px;}
+.res-val{font-family:'Playfair Display',serif;font-size:38px;font-weight:400;color:var(--text);letter-spacing:-1px;}
+.res-val.hl{color:var(--gold-b);font-size:50px;}
+.res-note{font-size:11px;color:var(--text-s);margin-top:5px;letter-spacing:.5px;}
+.res-sep{height:1px;background:var(--gold-line);margin:32px 0;opacity:.4;}
+/* IDEAS */
+.ideas-sec{background:var(--ink-s);position:relative;overflow:hidden;}
+.ideas-sec::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold-b),transparent);}
+.ideas-intro{max-width:700px;margin:0 auto 72px;text-align:center;}
+.ideas-grid{display:grid;grid-template-columns:1fr;gap:28px;margin-bottom:60px;}
+.idea-card{background:var(--ink-c);border:1px solid var(--gold-line);position:relative;overflow:hidden;transition:transform .4s cubic-bezier(.16,1,.3,1),box-shadow .4s;}
+.idea-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);transform:scaleX(0);transform-origin:left;transition:transform .5s;}
+.idea-card:hover{transform:translateY(-6px);box-shadow:0 24px 64px rgba(0,0,0,.5);}
+.idea-card:hover::before{transform:scaleX(1);}
+.idea-card-full{grid-column:1/-1;}
+/* Imagen principal de ideas: sin recorte, visible completa */
+.idea-img-principal{position:relative;background:var(--ink-c);padding:0;}
+.idea-img-principal img{width:100%;max-width:100%;height:auto;display:block;object-fit:contain;}
+.idea-body{padding:36px 36px 40px;}
+.idea-num{font-family:'Playfair Display',serif;font-size:11px;font-weight:400;color:var(--gold-line);letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;display:block;}
+.idea-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:400;color:var(--text);margin-bottom:14px;line-height:1.25;}
+.idea-desc{font-size:13.5px;color:var(--text-m);line-height:1.85;}
+.idea-desc strong{color:var(--beige-s);font-weight:600;}
+.idea-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px;}
+.idea-tag{font-size:9px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold-b);border:1px solid var(--gold-line);padding:5px 13px;background:rgba(201,169,110,.06);}
+.ideas-cta-row{text-align:center;padding-top:20px;}
+.ideas-cta-row .h2{margin-bottom:16px;}
+.ideas-cta-row .body-text{max-width:520px;margin:0 auto 44px;}
+.btn-invest{display:inline-flex;align-items:center;gap:12px;background:linear-gradient(135deg,var(--gold-d),var(--gold),var(--gold-b));color:var(--ink);padding:18px 52px;text-decoration:none;font-weight:700;font-size:10px;letter-spacing:3px;text-transform:uppercase;transition:all .4s;position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(201,169,110,.25);}
+.btn-invest::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--gold-b),var(--gold-p));opacity:0;transition:opacity .4s;}
+.btn-invest:hover::after{opacity:1}
+.btn-invest:hover{transform:translateY(-3px);box-shadow:0 16px 48px rgba(201,169,110,.35)}
+.btn-invest span,.btn-invest svg{position:relative;z-index:1}
+.btn-invest svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+/* MAP */
+.map-sec{background:var(--ink-s);}
+.map-frame{margin-top:64px;border:1px solid var(--gold-line);position:relative;overflow:hidden;}
+.map-frame::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold-b),transparent);z-index:400;}
+#map{height:480px;width:100%;display:block;}
+.map-bar{padding:32px 48px;display:flex;justify-content:space-between;align-items:center;background:var(--ink-c);border-top:1px solid var(--gold-line);flex-wrap:wrap;gap:16px;}
+.map-addr h3{font-family:'Playfair Display',serif;font-size:21px;font-weight:400;color:var(--text);margin-bottom:4px;}
+.map-addr p{font-size:11px;color:var(--text-s);letter-spacing:2px;font-weight:500;}
+.map-tag{padding:10px 22px;border:1px solid var(--gold-line);font-size:11px;font-weight:600;color:var(--gold-b);letter-spacing:1.5px;background:var(--gold-dim);}
+/* CTA */
+.cta-sec{background:var(--ink-c);text-align:center;position:relative;overflow:hidden;border-top:1px solid var(--gold-line);border-bottom:1px solid var(--gold-line);}
+.cta-sec::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 70% at 50% 50%,rgba(201,169,110,.05),transparent);}
+.cta-sec .container{position:relative;z-index:1;}
+.cta-sec .label{justify-content:center}
+.cta-sec .label::before{display:none}
+.cta-sec .label::after{content:'';display:block;width:28px;height:1px;background:var(--gold);opacity:.5;}
+.cta-sec .h2,.cta-sec .body-text{margin:0 auto;max-width:640px;}
+.contact-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;align-items:center;margin-top:56px;}
+.wa-btn{display:inline-flex;align-items:center;gap:12px;background:var(--green);color:var(--cream-s);padding:16px 44px;text-decoration:none;font-weight:600;font-size:9px;letter-spacing:3px;text-transform:uppercase;transition:all .4s;box-shadow:0 8px 32px rgba(74,158,111,.2);}
+.wa-btn:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(74,158,111,.3);filter:brightness(1.1)}
+.wa-btn svg{width:18px;height:18px;fill:var(--cream-s)}
+.mail-btn{display:inline-flex;align-items:center;gap:12px;border:1px solid var(--gold-line);color:var(--beige-s);padding:16px 44px;text-decoration:none;font-weight:500;font-size:9px;letter-spacing:3px;text-transform:uppercase;transition:all .4s;background:transparent;}
+.mail-btn:hover{background:var(--beige-dim);border-color:var(--gold);color:var(--gold-p);transform:translateY(-2px)}
+.mail-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.4;}
+/* FOOTER */
+footer{background:var(--ink);padding:72px 40px 52px;text-align:center;border-top:1px solid var(--gold-line);}
+.foot-logo{font-family:'Playfair Display',serif;font-size:26px;font-weight:400;color:var(--text);letter-spacing:8px;text-transform:uppercase;margin-bottom:8px;}
+.foot-logo span{color:var(--gold);}
+.foot-tagline{font-family:'Cormorant',serif;font-style:italic;font-size:14px;color:var(--text-s);letter-spacing:2px;margin-bottom:40px;}
+.foot-contacts{display:flex;gap:44px;justify-content:center;flex-wrap:wrap;margin-bottom:40px;}
+.foot-item{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--text-s);font-weight:400;}
+.foot-item svg{width:14px;height:14px;stroke:var(--gold);fill:none;stroke-width:1.4;flex-shrink:0;}
+.foot-item a{color:var(--text-s);text-decoration:none;transition:color .3s;}
+.foot-item a:hover{color:var(--gold-b)}
+.foot-line{width:48px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:0 auto 28px;}
+.foot-copy{font-size:9px;color:var(--text-xs);letter-spacing:3px;text-transform:uppercase;}
+@keyframes riseUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.reveal{opacity:0;transform:translateY(28px);transition:opacity 1s cubic-bezier(.16,1,.3,1),transform 1s cubic-bezier(.16,1,.3,1);}
+.reveal.in{opacity:1;transform:translateY(0);}
+.leaflet-container{background:#1C1A17!important}
+.leaflet-tile{filter:brightness(.65) contrast(1.15) saturate(.4) hue-rotate(200deg)!important}
+.leaflet-popup-content-wrapper{background:var(--ink-c);border:1px solid var(--gold-line);border-radius:0;color:var(--text);box-shadow:0 12px 48px rgba(0,0,0,.6);}
+.leaflet-popup-tip{background:var(--ink-c)}
+.leaflet-popup-content{font-family:'Jost',sans-serif;font-size:12.5px;padding:6px 2px;line-height:1.85;}
+.leaflet-popup-content strong{color:var(--gold-b);font-weight:600;display:block;margin-bottom:4px;font-size:13px;font-family:'Playfair Display',serif;}
+.leaflet-popup-close-button{color:var(--text-s)!important;font-size:18px!important;}
+.leaflet-control-zoom a{background:var(--ink-c)!important;color:var(--gold)!important;border-color:var(--gold-line)!important;font-weight:600!important;}
+.leaflet-control-zoom a:hover{background:var(--ink-m)!important;color:var(--gold-b)!important}
+.leaflet-control-attribution{background:rgba(28,26,23,.85)!important;color:var(--text-xs)!important;}
+.leaflet-control-attribution a{color:var(--gold)!important}
+@media(max-width:1020px){.property-grid{grid-template-columns:1fr;gap:52px}.prop-panel{aspect-ratio:16/7}.hero-rule{display:none}}
+@media(max-width:860px){.feat-grid{grid-template-columns:1fr 1fr}.calc-wrap{grid-template-columns:1fr}.calc-in{border-right:none;border-bottom:1px solid var(--gold-line)}.price-grid{padding:32px 36px 52px}.price-top{padding:52px 36px 36px}.price-sep{margin:0 36px}.nav-links{display:none}.nav{padding:22px 28px}.nav.scrolled{padding:16px 28px}.ideas-grid{grid-template-columns:1fr}.idea-card-full{grid-column:auto}.idea-body{padding:24px 24px 28px}}
+@media(max-width:900px){.gallery-grid{grid-template-columns:repeat(3,1fr)}.gallery-thumb:nth-child(n+4){display:none}.gallery-featured img{height:360px;}}
+@media(max-width:580px){.feat-grid{grid-template-columns:1fr}.stats-row{grid-template-columns:1fr}.price-grid{grid-template-columns:1fr}.map-bar{flex-direction:column;align-items:flex-start}section{padding:100px 0}.hero h1{font-size:46px}.calc-in,.calc-out{padding:36px 28px}.hero-actions,.contact-row{flex-direction:column;align-items:center}.btn-primary,.btn-ghost,.wa-btn,.mail-btn{width:100%;justify-content:center}.container{padding:0 24px}.gallery-grid{grid-template-columns:repeat(2,1fr)}.gallery-thumb:nth-child(n+3){display:none}.gallery-featured img{height:240px}.lightbox-inner{padding:0 50px}}
+</style>
+</head>
+<body>
+<nav class="nav" id="nav">
+<div class="nav-logo">
+<div class="nav-logo-main">Aceguá</div>
+<div class="nav-logo-sub"><span data-es="">Propiedad Estratégica</span><span data-pt="">Propriedade Estratégica</span></div>
+</div>
+<div class="nav-right">
+<div class="nav-links">
+<a href="#property"><span data-es="">Propiedad</span><span data-pt="">Propriedade</span></a>
+<a href="#features"><span data-es="">Detalles</span><span data-pt="">Detalhes</span></a>
+<a href="#pricing"><span data-es="">Precio</span><span data-pt="">Preço</span></a>
+<a href="#calculator"><span data-es="">Financiamiento</span><span data-pt="">Financiamento</span></a>
+<a href="#ideas"><span data-es="">Inversión</span><span data-pt="">Investimento</span></a>
+<a href="#location"><span data-es="">Ubicación</span><span data-pt="">Localização</span></a>
+<a href="#contact"><span data-es="">Contacto</span><span data-pt="">Contato</span></a>
+</div>
+<div class="lang-switch">
+<button class="lang-btn active" id="btnES" onclick="setLang('es')">ES</button>
+<button class="lang-btn" id="btnPT" onclick="setLang('pt')">PT</button>
+</div>
+</div>
+</nav>
+<section class="hero">
+<div class="hero-grid"></div><div class="hero-glow"></div>
+<div class="hero-rule hero-rule-l"></div><div class="hero-rule hero-rule-r"></div>
+<div class="hero-hrule"></div>
+<div class="hero-content">
+<div class="hero-eyebrow">
+<div class="hero-eyebrow-line"></div>
+<span class="hero-eyebrow-text">Aceguá · Uruguay · <span data-es="">Frontera Estratégica</span><span data-pt="">Fronteira Estratégica</span></span>
+<div class="hero-eyebrow-line"></div>
+</div>
+<h1><span data-es=""><em>Propiedad</em><span class="block">Estratégica</span></span><span data-pt=""><em>Propriedade</em><span class="block">Estratégica</span></span></h1>
+<div class="hero-rule-h"></div>
+<p class="hero-sub">
+<span data-es="">A <strong>media cuadra del Free Shop</strong> — zona de alto crecimiento en la frontera Uruguay–Brasil.</span>
+<span data-pt="">A <strong>meio quarteirão do Free Shop</strong> — zona de alto crescimento na fronteira Uruguai–Brasil.</span>
+</p>
+<div class="hero-actions">
+<a class="btn-primary" href="#calculator">
+<svg fill="none" height="14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><rect height="20" rx="2" width="16" x="4" y="2"></rect><line x1="8" x2="16" y1="6" y2="6"></line><line x1="8" x2="8" y1="14" y2="14.01"></line><line x1="12" x2="12" y1="14" y2="14.01"></line></svg>
+<span data-es="">Calcular financiamiento</span><span data-pt="">Calcular financiamento</span>
+</a>
+<a class="btn-ghost" href="#contact"><span data-es="">Ver propiedad</span><span data-pt="">Ver propriedade</span></a>
+</div>
+</div>
+<div class="scroll-cue"><span>Scroll</span><div class="scroll-wire"></div></div>
+</section>
+<section class="property-sec" id="property">
+<div class="container">
+<div class="property-grid">
+<div>
+<div class="label reveal"><span data-es="">Sobre la propiedad</span><span data-pt="">Sobre a propriedade</span></div>
+<h2 class="h2 reveal"><span data-es="">Una inversión con<br/><em>visión de futuro</em></span><span data-pt="">Um investimento com<br/><em>visão de futuro</em></span></h2>
+<p class="body-text reveal"><span data-es="">Ubicada en una de las zonas con <strong>mayor proyección de crecimiento</strong> de Aceguá, esta propiedad representa una excelente oportunidad para inversores, comerciantes o desarrolladores que buscan posicionarse antes de la valorización total de la zona.</span><span data-pt="">Localizada em uma das zonas com <strong>maior projeção de crescimento</strong> de Aceguá, esta propriedade representa uma excelente oportunidade para investidores, comerciantes ou incorporadores que buscam se posicionar antes da valorização total da área.</span></p>
+<p class="body-text reveal" style="margin-top:18px"><span data-es="">Su cercanía al <strong>Free Shop</strong> y al eje comercial de la frontera la convierte en un punto estratégico ideal para proyectos <strong>comerciales, logísticos o inmobiliarios</strong>.</span><span data-pt="">Sua proximidade ao <strong>Free Shop</strong> e ao eixo comercial da fronteira a torna um ponto estratégico ideal para projetos <strong>comerciais, logísticos ou imobiliários</strong>.</span></p>
+<div class="stats-row reveal">
+<div class="stat-block"><div class="num">375 m²</div><div class="lbl"><span data-es="">Terreno total</span><span data-pt="">Terreno total</span></div></div>
+<div class="stat-block"><div class="num">80 m²</div><div class="lbl"><span data-es="">Superficie construida</span><span data-pt="">Área construída</span></div></div>
+</div>
+</div>
+<div class="prop-panel reveal">
+<div class="cm tl"></div><div class="cm tr"></div><div class="cm bl"></div><div class="cm br"></div>
+<div class="prop-inner">
+<div class="prop-icon"><svg viewbox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div>
+<div class="prop-big"><span data-es="">Esquina</span><span data-pt="">Esquina</span></div>
+<div class="prop-sub"><span data-es="">Ubicación privilegiada</span><span data-pt="">Localização privilegiada</span></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="gallery-sec" id="gallery">
+<div class="container">
+<div class="feat-header reveal" style="margin-bottom:48px;">
+<div class="label" style="justify-content:center;"><span data-es="">Inspiración visual</span><span data-pt="">Inspiração visual</span></div>
+<h2 class="h2" style="max-width:560px;margin:0 auto 14px;text-align:center;"><span data-es="">Potencial de <em>renovación</em></span><span data-pt="">Potencial de <em>renovação</em></span></h2>
+<p class="body-text" style="max-width:520px;margin:0 auto;text-align:center;"><span data-es="">Visualizá cómo esta propiedad podría transformarse con una renovación estética moderna.</span><span data-pt="">Visualize como esta propriedade poderia se transformar com uma renovação estética moderna.</span></p>
+</div>
+<div class="gallery-disclaimer reveal">
+<div class="gallery-disclaimer-icon"><svg viewbox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg></div>
+<div>
+<div class="gallery-disclaimer-title"><span data-es="">Aviso importante — Imágenes ilustrativas</span><span data-pt="">Aviso importante — Imagens ilustrativas</span></div>
+<div class="gallery-disclaimer-body"><span data-es="">Las imágenes mostradas son meramente ilustrativas y sirven como ejemplo de cómo podría verse la propiedad con una renovación o un cambio estético mínimo. No representan necesariamente el estado actual de la propiedad.</span><span data-pt="">As imagens mostradas são meramente ilustrativas e servem como exemplo de como a propriedade poderia ficar com uma renovação ou mudança estética mínima. Não representam necessariamente o estado atual da propriedade.</span></div>
+</div>
+</div>
+<div class="gallery-featured reveal" onclick="openLightbox(0)">
+<img alt="Imagen ilustrativa de posible renovación estética — fachada moderna con madera y vidrio" id="gimg0" src="imagen_0.jpeg"/>
+<div class="gallery-featured-overlay"></div>
+<div class="gallery-featured-badge"><span data-es="">Referencia visual · Clic para ampliar</span><span data-pt="">Referência visual · Clique para ampliar</span></div>
+</div>
+<div class="gallery-grid reveal">
+<div class="gallery-thumb" onclick="openLightbox(1)"><img alt="Imagen ilustrativa — fachada contemporánea gris con carpintería negra" id="gimg1" src="imagen_1.jpeg"/></div>
+<div class="gallery-thumb" onclick="openLightbox(2)"><img alt="Imagen ilustrativa — fachada blanca minimalista con garage moderno" id="gimg2" src="imagen_2.jpeg"/></div>
+<div class="gallery-thumb" onclick="openLightbox(3)"><img alt="Imagen ilustrativa — estado actual de la propiedad como referencia real" id="gimg3" src="imagen_3.jpeg"/></div>
+<div class="gallery-thumb" onclick="openLightbox(4)"><img alt="Imagen ilustrativa — fachada actual con potencial de mejora estética" id="gimg4" src="imagen_4.jpeg"/></div>
+<div class="gallery-thumb" onclick="openLightbox(5)"><img alt="Imagen ilustrativa — resultado posible con mejoras estéticas" id="gimg5" src="imagen_5.jpeg"/></div>
+</div>
+</div>
+</section>
+<div class="lightbox" id="lightbox" onclick="closeLightboxBg(event)">
+<div class="lightbox-inner">
+<div class="lightbox-close" onclick="closeLightbox()">✕</div>
+<button class="lightbox-nav lightbox-prev" onclick="lbNav(-1)"><svg viewbox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+<img alt="Imagen ilustrativa de posible renovación de la propiedad" class="lightbox-img" id="lbImg" src=""/>
+<button class="lightbox-nav lightbox-next" onclick="lbNav(1)"><svg viewbox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+<div class="lightbox-caption" id="lbCaption"></div>
+<div class="lightbox-counter" id="lbCounter"></div>
+</div>
+</div>
+<section class="feat-sec" id="features">
+<div class="container">
+<div class="feat-header reveal">
+<div class="label"><span data-es="">Características</span><span data-pt="">Características</span></div>
+<h2 class="h2" style="max-width:520px;margin:0 auto 16px"><span data-es="">Todo lo que <em>necesitás</em> saber</span><span data-pt="">Tudo o que você <em>precisa</em> saber</span></h2>
+<p class="body-text" style="max-width:480px;margin:0 auto"><span data-es="">Cada detalle pensado para maximizar el retorno.</span><span data-pt="">Cada detalhe pensado para maximizar o retorno.</span></p>
+</div>
+<div class="feat-grid">
+<div class="feat-card reveal"><span class="feat-num">01</span><div class="feat-ico"><svg viewbox="0 0 24 24"><rect height="18" rx="1" width="18" x="3" y="3"></rect><line x1="3" x2="21" y1="9" y2="9"></line><line x1="9" x2="9" y1="3" y2="21"></line></svg></div><h3><span data-es="">375 m² de terreno</span><span data-pt="">375 m² de terreno</span></h3><p><span data-es=""><strong>Amplio espacio</strong> para desarrollo comercial, logístico o residencial de alto nivel.</span><span data-pt=""><strong>Amplo espaço</strong> para desenvolvimento comercial, logístico ou residencial de alto nível.</span></p></div>
+<div class="feat-card reveal"><span class="feat-num">02</span><div class="feat-ico"><svg viewbox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div><h3><span data-es="">80 m² construidos</span><span data-pt="">80 m² construídos</span></h3><p><span data-es=""><strong>Casa y galpón</strong> existentes, ideales para uso inmediato o remodelación.</span><span data-pt=""><strong>Casa e galpão</strong> existentes, ideais para uso imediato ou reforma.</span></p></div>
+<div class="feat-card reveal"><span class="feat-num">03</span><div class="feat-ico"><svg viewbox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"></path></svg></div><h3><span data-es="">Esquina estratégica</span><span data-pt="">Esquina estratégica</span></h3><p><span data-es=""><strong>Máxima visibilidad</strong> y acceso desde dos calles. Ideal para comercio.</span><span data-pt=""><strong>Máxima visibilidade</strong> e acesso por duas ruas. Ideal para comércio.</span></p></div>
+<div class="feat-card reveal"><span class="feat-num">04</span><div class="feat-ico"><svg viewbox="0 0 24 24"><line x1="12" x2="12" y1="1" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div><h3><span data-es="">Ideal para inversión</span><span data-pt="">Ideal para investimento</span></h3><p><span data-es="">Comercio, logística, alquiler o reventa con <strong>alta plusvalía proyectada</strong>.</span><span data-pt="">Comércio, logística, aluguel ou revenda com <strong>alta valorização projetada</strong>.</span></p></div>
+<div class="feat-card reveal"><span class="feat-num">05</span><div class="feat-ico"><svg viewbox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" x2="8" y1="13" y2="13"></line><line x1="16" x2="8" y1="17" y2="17"></line></svg></div><h3><span data-es="">Documentación en regla</span><span data-pt="">Documentação em ordem</span></h3><p><span data-es=""><strong>Sin embargos ni problemas legales.</strong> Transferencia inmediata y segura.</span><span data-pt=""><strong>Sem ônus nem problemas legais.</strong> Transferência imediata e segura.</span></p></div>
+<div class="feat-card reveal"><span class="feat-num">06</span><div class="feat-ico"><svg viewbox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg></div><h3><span data-es="">Zona en expansión</span><span data-pt="">Zona em expansão</span></h3><p><span data-es=""><strong>Alto potencial de valorización</strong> por el desarrollo comercial de la frontera.</span><span data-pt=""><strong>Alto potencial de valorização</strong> pelo desenvolvimento comercial da fronteira.</span></p></div>
+</div>
+</div>
+</section>
+<section class="price-sec" id="pricing">
+<div class="container">
+<div class="reveal" style="text-align:center">
+<div class="label" style="justify-content:center"><span data-es="">Inversión</span><span data-pt="">Investimento</span></div>
+<h2 class="h2" style="max-width:480px;margin:0 auto 16px"><span data-es="">Precio y <em>condiciones</em></span><span data-pt="">Preço e <em>condições</em></span></h2>
+<p class="body-text" style="max-width:460px;margin:0 auto"><span data-es="">Opciones flexibles adaptadas a tu plan de inversión.</span><span data-pt="">Opções flexíveis adaptadas ao seu plano de investimento.</span></p>
+</div>
+<div class="price-card reveal" style="margin-top:64px">
+<div class="price-top">
+<div class="price-eyebrow"><span data-es="">Precio contado</span><span data-pt="">Preço à vista</span></div>
+<div class="price-fig"><small>USD</small> 60.000</div>
+<div class="price-note"><span data-es="">Transferencia directa</span><span data-pt="">Transferência direta</span></div>
+</div>
+<div class="price-sep"></div>
+<div class="price-grid">
+<div class="price-item"><div class="v">USD 70.000</div><div class="d"><span data-es="">Precio financiado</span><span data-pt="">Preço financiado</span></div></div>
+<div class="price-item"><div class="v">USD 15.000</div><div class="d"><span data-es="">Entrega inicial mínima</span><span data-pt="">Entrada mínima</span></div></div>
+<div class="price-item"><div class="v">~USD 500</div><div class="d"><span data-es="">Cuota mensual aprox.</span><span data-pt="">Parcela mensal aprox.</span></div></div>
+<div class="price-item"><div class="v"><span data-es="">Flexible</span><span data-pt="">Flexível</span></div><div class="d"><span data-es="">Plazos de financiación</span><span data-pt="">Prazos de financiamento</span></div></div>
+</div>
+</div>
+</div>
+</section>
+<section class="calc-sec" id="calculator">
+<div class="container">
+<div class="reveal" style="text-align:center">
+<div class="label" style="justify-content:center"><span data-es="">Simulador</span><span data-pt="">Simulador</span></div>
+<h2 class="h2" style="max-width:480px;margin:0 auto 16px"><span data-es="">Calculadora de <em>financiamiento</em></span><span data-pt="">Calculadora de <em>financiamento</em></span></h2>
+<p class="body-text" style="max-width:440px;margin:0 auto"><span data-es="">Ajustá los valores para explorar diferentes escenarios de pago.</span><span data-pt="">Ajuste os valores para explorar diferentes cenários de pagamento.</span></p>
+</div>
+<div class="calc-wrap reveal">
+<div class="calc-in">
+<div class="inp-grp"><div class="inp-lbl"><span data-es="">Entrega inicial</span><span data-pt="">Entrada</span><span class="val" id="downDisplay">USD 15.000</span></div><input id="downPayment" max="60000" min="15000" step="1000" type="range" value="15000"/></div>
+<div class="inp-grp"><div class="inp-lbl"><span data-es="">Plazo de pago</span><span data-pt="">Prazo</span><span class="val" id="termDisplay">12 meses</span></div><input id="term" max="120" min="6" step="1" type="range" value="12"/></div>
+<div class="inp-grp"><div class="inp-lbl"><span data-es="">Tasa anual</span><span data-pt="">Taxa anual</span><span class="val" id="rateDisplay">0%</span></div><input id="rate" max="15" min="0" step="0.5" type="range" value="0"/></div>
+</div>
+<div class="calc-out">
+<div class="res-item"><div class="res-lbl"><span data-es="">Cuota mensual</span><span data-pt="">Parcela mensal</span></div><div class="res-val hl" id="monthlyPayment">USD 4.583</div></div>
+<div class="res-sep"></div>
+<div class="res-item"><div class="res-lbl"><span data-es="">Monto a financiar</span><span data-pt="">Valor a financiar</span></div><div class="res-val" id="financeAmount">USD 55.000</div></div>
+<div class="res-item"><div class="res-lbl"><span data-es="">Total a pagar</span><span data-pt="">Total a pagar</span></div><div class="res-val" id="totalPayment">USD 70.000</div><div class="res-note" id="interestNote"><span data-es="">Sin intereses</span></div></div>
+</div>
+</div>
+</div>
+</section>
+<section class="ideas-sec" id="ideas">
+<div class="container">
+<div class="ideas-intro reveal">
+<div class="label" style="justify-content:center;"><span data-es="">Potencial del terreno</span><span data-pt="">Potencial do terreno</span></div>
+<h2 class="h2" style="max-width:600px;margin:0 auto 20px;"><span data-es="">Ideas de desarrollo <em>para el terreno</em></span><span data-pt="">Ideias de desenvolvimento <em>para o terreno</em></span></h2>
+<p class="body-text"><span data-es="">El terreno cuenta con aproximadamente <strong>295 m² libres</strong>, lo que permite desarrollar diferentes tipos de proyectos inmobiliarios o comerciales. A continuación se muestran ejemplos visuales de negocios rentables que se podrían realizar en este espacio, como depósitos logísticos o viviendas para alquiler.</span><span data-pt="">O terreno conta com aproximadamente <strong>295 m² livres</strong>, o que permite desenvolver diferentes tipos de projetos imobiliários ou comerciais. A seguir são mostrados exemplos visuais de negócios rentáveis que poderiam ser realizados neste espaço, como depósitos logísticos ou moradias para aluguel.</span></p>
+</div>
+<div class="ideas-grid">
+<div class="idea-card idea-card-full reveal">
+<div class="idea-img-principal">
+<img alt="Vista general del terreno con los modelos de desarrollo posibles" src="imagen_7.jpeg"/>
+</div>
+<div class="idea-body">
+<span class="idea-num"><span data-es="">Resumen visual</span><span data-pt="">Resumo visual</span></span>
+<h3 class="idea-title"><span data-es="">Modelo de negocio para los 295 m² disponibles</span><span data-pt="">Modelo de negócio para os 295 m² disponíveis</span></h3>
+<p class="idea-desc"><span data-es="">La imagen muestra a escala real la <strong>construcción existente de 80 m²</strong> (casa + galpón adjunto) y el <strong>espacio libre de 295 m²</strong> disponible para desarrollar.</span><span data-pt="">A imagem mostra em escala real a <strong>construção existente de 80 m²</strong> (casa + galpão adjunto) e o <strong>espaço livre de 295 m²</strong> disponível para desenvolver.</span></p>
+<div class="idea-tags">
+<span class="idea-tag">80 m² <span data-es="">existentes</span><span data-pt="">existentes</span></span>
+<span class="idea-tag">295 m² <span data-es="">libres</span><span data-pt="">livres</span></span>
+<span class="idea-tag">375 m² total</span>
+</div>
+</div>
+</div>
+</div>
+<div class="ideas-cta-row reveal">
+<div style="height:1px;background:linear-gradient(90deg,transparent,var(--gold-line),transparent);margin-bottom:60px;"></div>
+<h2 class="h2"><span data-es="">¿Te interesa <em>este desarrollo?</em></span><span data-pt="">Tem interesse <em>neste desenvolvimento?</em></span></h2>
+<p class="body-text"><span data-es="">Consultanos sin compromiso. Te asesoramos sobre el mejor desarrollo para el terreno según tu presupuesto y objetivos de inversión.</span><span data-pt="">Consulte-nos sem compromisso. Orientamos sobre o melhor desenvolvimento para o terreno segundo seu orçamento e objetivos de investimento.</span></p>
+<a class="btn-invest" href="https://wa.me/555195118063?text=Hola%2C%20me%20interesan%20las%20ideas%20de%20desarrollo%20del%20terreno%20en%20Aceguá" target="_blank">
+<svg viewbox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+<span data-es="">Solicitar información de inversión</span><span data-pt="">Solicitar informação de investimento</span>
+</a>
+</div>
+</div>
+</section>
+<section class="map-sec" id="location">
+<div class="container">
+<div class="reveal" style="text-align:center">
+<div class="label" style="justify-content:center"><span data-es="">Ubicación</span><span data-pt="">Localização</span></div>
+<h2 class="h2" style="max-width:480px;margin:0 auto 16px"><span data-es="">Encontrá la <em>propiedad</em></span><span data-pt="">Encontre a <em>propriedade</em></span></h2>
+<p class="body-text" style="max-width:500px;margin:0 auto"><span data-es=""><strong>Calle 12</strong>, entre Juan Astorgas y Av. Gervasio Artigas — <strong>Aceguá, Uruguay</strong>.</span><span data-pt=""><strong>Rua 12</strong>, entre Juan Astorgas e Av. Gervasio Artigas — <strong>Aceguá, Uruguai</strong>.</span></p>
+</div>
+<div class="map-frame reveal">
+<div id="map"></div>
+<div class="map-bar">
+<div class="map-addr"><h3><span data-es="">Calle 12 — Esquina estratégica</span><span data-pt="">Rua 12 — Esquina estratégica</span></h3><p>Aceguá · Cerro Largo · Uruguay</p></div>
+<div class="map-tag">📍 <span data-es="">A media cuadra del Free Shop</span><span data-pt="">A meio quarteirão do Free Shop</span></div>
+</div>
+</div>
+</div>
+</section>
+<section class="cta-sec" id="contact">
+<div class="container">
+<div class="label reveal"><span data-es="">Contacto</span><span data-pt="">Contato</span></div>
+<h2 class="h2 reveal"><span data-es="">¿Listo para <em>invertir?</em></span><span data-pt="">Pronto para <em>investir?</em></span></h2>
+<p class="body-text reveal"><span data-es="">Las propiedades bien ubicadas en <strong>zonas de crecimiento</strong> se valorizan rápidamente. <strong>No dejes pasar esta oportunidad única.</strong></span><span data-pt="">Propriedades bem localizadas em <strong>zonas de crescimento</strong> se valorizam rapidamente. <strong>Não perca esta oportunidade única.</strong></span></p>
+<div class="contact-row reveal">
+<a class="wa-btn" href="https://wa.me/555195118063" target="_blank">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"></path></svg>
+<span data-es="">Contactar por WhatsApp</span><span data-pt="">Contatar pelo WhatsApp</span>
+</a>
+<a class="mail-btn" href="mailto:carlosgastoncuello@gmail.com">
+<svg viewbox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+<span data-es="">Enviar un email</span><span data-pt="">Enviar um e-mail</span>
+</a>
+</div>
+</div>
+</section>
+<footer>
+<div class="foot-logo">Ace<span>guá</span></div>
+<div class="foot-tagline"><span data-es="">Inversión estratégica · Frontera Uruguay–Brasil</span><span data-pt="">Investimento estratégico · Fronteira Uruguai–Brasil</span></div>
+<div class="foot-contacts">
+<div class="foot-item"><svg viewbox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><strong>Carlos Gastón Cuello</strong></div>
+<div class="foot-item"><svg viewbox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4a2 2 0 0 1 2-2.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>+55 51 9511-8063</div>
+<div class="foot-item"><svg viewbox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg><a href="mailto:carlosgastoncuello@gmail.com">carlosgastoncuello@gmail.com</a></div>
+</div>
+<div class="foot-line"></div>
+<div class="foot-copy">© 2025 · <span data-es="">Todos los derechos reservados</span><span data-pt="">Todos os direitos reservados</span></div>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+/* LANG */
+function setLang(l){
+  document.documentElement.setAttribute('data-lang',l);
+  document.getElementById('btnES').classList.toggle('active',l==='es');
+  document.getElementById('btnPT').classList.toggle('active',l==='pt');
+  var m=+document.getElementById('term').value;
+  var sfx=m===1?(l==='es'?'mes':'mês'):(l==='es'?'meses':'meses');
+  document.getElementById('termDisplay').textContent=m+' '+sfx;
+}
+function getLang(){return document.documentElement.getAttribute('data-lang')||'es';}
+/* NAV */
+window.addEventListener('scroll',function(){document.getElementById('nav').classList.toggle('scrolled',window.scrollY>60);},{passive:true});
+/* REVEAL */
+var ro=new IntersectionObserver(function(entries){
+  entries.forEach(function(e,i){if(e.isIntersecting){setTimeout(function(){e.target.classList.add('in');},i*70);ro.unobserve(e.target);}});
+},{threshold:.06,rootMargin:'0px 0px -30px 0px'});
+document.querySelectorAll('.reveal').forEach(function(el){ro.observe(el);});
+/* CALCULATOR */
+var PRICE=70000;
+var dpEl=document.getElementById('downPayment');
+var tmEl=document.getElementById('term');
+var rtEl=document.getElementById('rate');
+function fmt(v){return'USD '+Math.round(v).toLocaleString('es-UY');}
+function trackRange(s){var pct=((s.value-s.min)/(s.max-s.min))*100;s.style.background='linear-gradient(to right,#C9A96E '+pct+'%,rgba(237,232,223,.12) '+pct+'%)';}
+function calc(){
+  var l=getLang();
+  var down=+dpEl.value,months=+tmEl.value,rate=+rtEl.value/100;
+  var fin=PRICE-down;
+  var sfx=months===1?(l==='es'?'mes':'mês'):(l==='es'?'meses':'meses');
+  document.getElementById('downDisplay').textContent=fmt(down);
+  document.getElementById('termDisplay').textContent=months+' '+sfx;
+  document.getElementById('rateDisplay').textContent=rtEl.value+'%';
+  var monthly,total,intv;
+  if(rate===0){monthly=fin/months;total=down+fin;intv=0;}
+  else{var mr=rate/12;monthly=fin*(mr*Math.pow(1+mr,months))/(Math.pow(1+mr,months)-1);total=down+monthly*months;intv=total-PRICE;}
+  var noteEl=document.getElementById('interestNote');
+  if(fin<=0){
+    document.getElementById('monthlyPayment').textContent=fmt(0);
+    document.getElementById('financeAmount').textContent=fmt(0);
+    document.getElementById('totalPayment').textContent=fmt(down);
+    noteEl.textContent=l==='es'?'Pago al contado':'Pagamento à vista';
+  }else{
+    document.getElementById('monthlyPayment').textContent=fmt(monthly);
+    document.getElementById('financeAmount').textContent=fmt(fin);
+    document.getElementById('totalPayment').textContent=fmt(total);
+    noteEl.textContent=intv>0?(l==='es'?'Incluye':'Inclui')+' '+fmt(intv)+' '+(l==='es'?'de intereses':'de juros'):(l==='es'?'Sin intereses':'Sem juros');
+  }
+  [dpEl,tmEl,rtEl].forEach(trackRange);
+}
+dpEl.addEventListener('input',calc);
+tmEl.addEventListener('input',calc);
+rtEl.addEventListener('input',calc);
+calc();
+/* MAP */
+var LAT=-31.8707514,LNG=-54.1649197;
+var map=L.map('map',{zoomControl:true,scrollWheelZoom:false,dragging:true,doubleClickZoom:true}).setView([LAT,LNG],18);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:19}).addTo(map);
+var markerIcon=L.divIcon({className:'',html:'<div style="position:relative;width:40px;height:48px;filter:drop-shadow(0 6px 18px rgba(201,169,110,.6))"><div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:32px;height:32px;background:linear-gradient(135deg,#A07B45,#C9A96E,#EDD4A3);clip-path:polygon(50% 0%,100% 38%,82% 100%,18% 100%,0% 38%);"></div><div style="position:absolute;top:4px;left:50%;transform:translateX(-50%);width:24px;height:24px;background:rgba(28,26,23,.85);clip-path:polygon(50% 0%,100% 38%,82% 100%,18% 100%,0% 38%);display:flex;align-items:center;justify-content:center;"><div style="color:#C9A96E;font-size:10px;font-weight:700;line-height:1;margin-top:-1px;">&#8962;</div></div></div>',iconSize:[40,48],iconAnchor:[20,46],popupAnchor:[0,-50]});
+L.marker([LAT,LNG],{icon:markerIcon}).addTo(map).bindPopup('<strong>Calle Juan Astorga — Aceguá, Uruguay</strong><span style="color:rgba(237,232,223,.55);font-size:11.5px;display:block;margin-bottom:5px;">375 m² · Esquina estratégica · 80 m² construidos</span><span style="color:#DFC08A;font-size:11.5px;font-weight:600;">📍 A media cuadra del Free Shop</span>',{maxWidth:260}).openPopup();
+L.circle([LAT,LNG],{radius:28,color:'#C9A96E',fillColor:'#C9A96E',fillOpacity:.08,weight:1,opacity:.4}).addTo(map);
+/* SMOOTH SCROLL */
+document.querySelectorAll('a[href^="#"]').forEach(function(a){
+  a.addEventListener('click',function(e){
+    e.preventDefault();
+    var t=document.querySelector(a.getAttribute('href'));
+    if(t)t.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+});
+/* LIGHTBOX */
+var LB_IDS=['gimg0','gimg1','gimg2','gimg3','gimg4','gimg5'];
+var LB_CAPTIONS=['Referencia visual: fachada moderna con madera y vidrio','Referencia: fachada contemporánea en gris con carpintería negra','Referencia: diseño minimalista blanco con garage moderno','Estado actual — vista real de la propiedad','Estado actual con potencial de renovación estética','Referencia: resultado posible con mejoras visuales'];
+var lbIdx=0;
+function openLightbox(idx){
+  lbIdx=idx;
+  renderLb();
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeLightbox(){
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow='';
+}
+function closeLightboxBg(e){
+  if(e.target===document.getElementById('lightbox'))closeLightbox();
+}
+function lbNav(d){
+  lbIdx=(lbIdx+d+LB_IDS.length)%LB_IDS.length;
+  renderLb();
+}
+function renderLb(){
+  var imgEl=document.getElementById('lbImg');
+  var srcEl=document.getElementById(LB_IDS[lbIdx]);
+  imgEl.style.opacity='0';
+  imgEl.src=srcEl?srcEl.src:'';
+  imgEl.onload=function(){imgEl.style.opacity='1';};
+  document.getElementById('lbCaption').textContent=LB_CAPTIONS[lbIdx];
+  document.getElementById('lbCounter').textContent=(lbIdx+1)+' / '+LB_IDS.length;
+}
+document.addEventListener('keydown',function(e){
+  if(!document.getElementById('lightbox').classList.contains('open'))return;
+  if(e.key==='Escape')closeLightbox();
+  if(e.key==='ArrowLeft')lbNav(-1);
+  if(e.key==='ArrowRight')lbNav(1);
+});
+</script>
+</body>
+</html>
